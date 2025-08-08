@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spielend abnehmen</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 400px;
+            margin: 0 auto;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .progress-info {
+            background: rgba(255,255,255,0.9);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .block-info {
+            font-size: 1.1em;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+
+        .day-info {
+            font-size: 1em;
+            color: #666;
+        }
+
+        .card-section {
+            background: rgba(255,255,255,0.95);
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        }
+
+        .draw-button {
+            width: 100%;
+            padding: 18px;
+            font-size: 1.2em;
+            font-weight: bold;
+            color: white;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .draw-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+
+        .draw-button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .current-card {
+            background: linear-gradient(135deg, #ffeaa7, #fab1a0);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .card-title {
+            font-size: 1.4em;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #d63031;
+        }
+
+        .card-description {
+            font-size: 1em;
+            line-height: 1.4;
+            color: #2d3436;
+        }
+
+        .saved-cards {
+            background: rgba(255,255,255,0.9);
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .saved-cards h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+
+        .saved-card {
+            background: #e8f4fd;
+            border-radius: 10px;
+            padding: 10px;
+            margin-bottom: 8px;
+            font-size: 0.9em;
+            color: #2d3436;
+        }
+
+        .actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .action-btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .save-btn {
+            background: #00b894;
+            color: white;
+        }
+
+        .use-saved-btn {
+            background: #0984e3;
+            color: white;
+        }
+
+        .reset-btn {
+            background: #e17055;
+            color: white;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+        }
+
+        .action-btn:disabled {
+            background: #ddd;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .rules {
+            background: rgba(255,255,255,0.9);
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .rules h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+        }
+
+        .rule-item {
+            margin-bottom: 12px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            font-size: 0.9em;
+            line-height: 1.4;
+        }
+
+        .rule-title {
+            font-weight: bold;
+            color: #2d3436;
+            margin-bottom: 5px;
+        }
+
+        .complete-message {
+            background: linear-gradient(135deg, #00b894, #00cec9);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            font-size: 1.1em;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 15px;
+            }
+            
+            .header h1 {
+                font-size: 1.8em;
+            }
+            
+            .card-section {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎯 Spielend abnehmen</h1>
+            <p>Deine tägliche Karte für gesundes Abnehmen</p>
+        </div>
+
+        <div class="progress-info">
+            <div class="block-info" id="blockInfo">Block 1 von 4</div>
+            <div class="day-info" id="dayInfo">Tag 1 von 10</div>
+        </div>
+
+        <div class="card-section">
+            <button class="draw-button" id="drawButton" onclick="drawCard()">
+                🎲 Karte für heute ziehen
+            </button>
+            
+            <div id="currentCard" style="display: none;"></div>
+            
+            <div class="actions" id="actions" style="display: none;">
+                <button class="action-btn save-btn" id="saveBtn" onclick="saveCard()">
+                    💾 Für später aufheben
+                </button>
+                <button class="action-btn use-saved-btn" id="useSavedBtn" onclick="showSavedCards()" disabled>
+                    📋 Gespeicherte nutzen
+                </button>
+            </div>
+        </div>
+
+        <div id="savedCards" style="display: none;"></div>
+
+        <div id="completeMessage" style="display: none;"></div>
+
+        <button class="action-btn reset-btn" onclick="resetGame()" style="width: 100%; margin-bottom: 20px;">
+            🔄 Spiel zurücksetzen
+        </button>
+
+        <div class="rules">
+            <h3>📋 Spielregeln</h3>
+            <div class="rule-item">
+                <div class="rule-title">🌅 Ziehung der Karte:</div>
+                Die Karte für den Tag wird erst nach dem Aufstehen gezogen, nicht am Vorabend.
+            </div>
+            <div class="rule-item">
+                <div class="rule-title">🍽️ Essen wie immer:</div>
+                Diese Karte kann für einen frei wählbaren Folgetag aufgehoben werden.
+            </div>
+            <div class="rule-item">
+                <div class="rule-title">⏰ Intervallfasten:</div>
+                8 Stunden normale Nahrungsaufnahme, dann 16 Stunden nichts essen. Letzte Mahlzeit bis 16 Uhr.
+            </div>
+            <div class="rule-item">
+                <div class="rule-title">🚫 Fasten:</div>
+                Ganztägig nur Wasser, Tee oder schwarzer Kaffee. Bei zweimaliger Ziehung hintereinander kann die zweite Karte aufgehoben werden.
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const cardDescriptions = {
+            "Essen wie immer": "Du darfst heute normal essen. Diese Karte kann für später aufgehoben werden.",
+            "Intervallfasten": "8 Stunden essen, dann 16 Stunden fasten. Letzte Mahlzeit bis 16 Uhr.",
+            "Fastentag": "Nur Wasser, Tee oder schwarzer Kaffee erlaubt.",
+            "Fisch und Gemüse": "Heute gibt es nur Fisch und Gemüse in verschiedenen Zubereitungen.",
+            "Suppentag": "Verschiedene Suppen und Brühen stehen auf dem Speiseplan.",
+            "Gemüse und Beeren": "Frisches Gemüse kombiniert mit leckeren Beeren.",
+            "Wurzelgemüse, Pilze und Nüsse": "Erdige Aromen mit Karotten, Sellerie, Pilzen und Nüssen.",
+            "Obsttag": "Ein Tag voller vitaminreicher Früchte.",
+            "Grünes Gemüse": "Spinat, Brokkoli, Grünkohl und anderes grünes Gemüse."
+        };
+
+        const blocks = [
+            {
+                "Essen wie immer": 2,
+                "Intervallfasten": 2,
+                "Fastentag": 2,
+                "Fisch und Gemüse": 2,
+                "Suppentag": 1,
+                "Gemüse und Beeren": 1
+            },
+            {
+                "Intervallfasten": 3,
+                "Essen wie immer": 2,
+                "Fastentag": 1,
+                "Fisch und Gemüse": 2,
+                "Wurzelgemüse, Pilze und Nüsse": 1,
+                "Gemüse und Beeren": 1
+            },
+            {
+                "Essen wie immer": 2,
+                "Intervallfasten": 2,
+                "Fastentag": 2,
+                "Fisch und Gemüse": 1,
+                "Wurzelgemüse, Pilze und Nüsse": 1,
+                "Gemüse und Beeren": 2
+            },
+            {
+                "Essen wie immer": 2,
+                "Intervallfasten": 2,
+                "Fastentag": 2,
+                "Fisch und Gemüse": 1,
+                "Suppentag": 1,
+                "Obsttag": 1,
+                "Grünes Gemüse": 1
+            }
+        ];
+
+        let gameState = {
+            currentBlock: 0,
+            currentDay: 0,
+            availableCards: {},
+            todaysCard: null,
+            lastDrawDate: null,
+            savedCards: [],
+            lastCard: null,
+            gameComplete: false
+        };
+
+        function initGame() {
+            const saved = JSON.parse(window.gameData || '{}');
+            if (saved.currentBlock !== undefined) {
+                gameState = saved;
+            } else {
+                resetToCurrentBlock();
+            }
+            updateUI();
+        }
+
+        function saveGame() {
+            window.gameData = JSON.stringify(gameState);
+        }
+
+        function resetToCurrentBlock() {
+            gameState.availableCards = JSON.parse(JSON.stringify(blocks[gameState.currentBlock]));
+        }
+
+        function canDrawToday() {
+            const today = new Date().toDateString();
+            return gameState.lastDrawDate !== today && !gameState.gameComplete;
+        }
+
+        function createCardDeck() {
+            const deck = [];
+            for (const [card, count] of Object.entries(gameState.availableCards)) {
+                for (let i = 0; i < count; i++) {
+                    deck.push(card);
+                }
+            }
+            return deck;
+        }
+
+        function drawCard() {
+            if (!canDrawToday()) return;
+
+            const deck = createCardDeck();
+            if (deck.length === 0) {
+                nextBlock();
+                return;
+            }
+
+            const randomIndex = Math.floor(Math.random() * deck.length);
+            const drawnCard = deck[randomIndex];
+            
+            // Spezialregel für Fasten
+            if (drawnCard === "Fastentag" && gameState.lastCard === "Fastentag") {
+                const useAlternative = confirm("Du hast gestern schon gefastet. Möchtest du die Fastenkarte für später aufheben und eine andere ziehen?");
+                if (useAlternative) {
+                    gameState.savedCards.push("Fastentag");
+                    // Entferne Fastentag aus verfügbaren Karten für diese Ziehung
+                    const alternativeDeck = deck.filter(card => card !== "Fastentag");
+                    if (alternativeDeck.length > 0) {
+                        const altIndex = Math.floor(Math.random() * alternativeDeck.length);
+                        gameState.todaysCard = alternativeDeck[altIndex];
+                        gameState.availableCards[gameState.todaysCard]--;
+                    } else {
+                        gameState.todaysCard = drawnCard;
+                        gameState.availableCards[drawnCard]--;
+                    }
+                } else {
+                    gameState.todaysCard = drawnCard;
+                    gameState.availableCards[drawnCard]--;
+                }
+            } else {
+                gameState.todaysCard = drawnCard;
+                gameState.availableCards[drawnCard]--;
+            }
+
+            if (gameState.availableCards[gameState.todaysCard] === 0) {
+                delete gameState.availableCards[gameState.todaysCard];
+            }
+
+            gameState.lastDrawDate = new Date().toDateString();
+            gameState.currentDay++;
+            gameState.lastCard = gameState.todaysCard;
+            
+            saveGame();
+            updateUI();
+        }
+
+        function saveCard() {
+            if (gameState.todaysCard === "Essen wie immer") {
+                gameState.savedCards.push(gameState.todaysCard);
+                gameState.todaysCard = null;
+                saveGame();
+                updateUI();
+            }
+        }
+
+        function showSavedCards() {
+            if (gameState.savedCards.length === 0) return;
+
+            const savedCardsDiv = document.getElementById('savedCards');
+            const html = `
+                <div class="saved-cards">
+                    <h3>💾 Gespeicherte Karten</h3>
+                    ${gameState.savedCards.map((card, index) => `
+                        <div class="saved-card">
+                            <strong>${card}</strong><br>
+                            ${cardDescriptions[card]}
+                            <button onclick="useSavedCard(${index})" style="margin-top: 8px; padding: 5px 10px; background: #0984e3; color: white; border: none; border-radius: 5px; cursor: pointer;">
+                                Heute verwenden
+                            </button>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+            savedCardsDiv.innerHTML = html;
+            savedCardsDiv.style.display = 'block';
+        }
+
+        function useSavedCard(index) {
+            gameState.todaysCard = gameState.savedCards[index];
+            gameState.savedCards.splice(index, 1);
+            gameState.lastDrawDate = new Date().toDateString();
+            if (gameState.currentDay === 0) gameState.currentDay++;
+            saveGame();
+            updateUI();
+        }
+
+        function nextBlock() {
+            gameState.currentBlock++;
+            gameState.currentDay = 0;
+            
+            if (gameState.currentBlock >= blocks.length) {
+                gameState.gameComplete = true;
+                saveGame();
+                updateUI();
+                return;
+            }
+            
+            resetToCurrentBlock();
+            saveGame();
+            updateUI();
+        }
+
+        function resetGame() {
+            if (confirm("Möchtest du das Spiel wirklich zurücksetzen?")) {
+                gameState = {
+                    currentBlock: 0,
+                    currentDay: 0,
+                    availableCards: {},
+                    todaysCard: null,
+                    lastDrawDate: null,
+                    savedCards: [],
+                    lastCard: null,
+                    gameComplete: false
+                };
+                resetToCurrentBlock();
+                saveGame();
+                updateUI();
+            }
+        }
+
+        function updateUI() {
+            // Progress Info
+            document.getElementById('blockInfo').textContent = 
+                gameState.gameComplete ? 'Spiel abgeschlossen! 🎉' : `Block ${gameState.currentBlock + 1} von 4`;
+            document.getElementById('dayInfo').textContent = 
+                gameState.gameComplete ? 'Herzlichen Glückwunsch!' : `Tag ${gameState.currentDay} von 10`;
+
+            // Draw Button
+            const drawButton = document.getElementById('drawButton');
+            const canDraw = canDrawToday() && !gameState.gameComplete;
+            drawButton.disabled = !canDraw;
+            drawButton.textContent = gameState.todaysCard ? '✅ Karte bereits gezogen' : 
+                                   gameState.gameComplete ? '🏆 Spiel beendet' : '🎲 Karte für heute ziehen';
+
+            // Current Card
+            const currentCardDiv = document.getElementById('currentCard');
+            const actionsDiv = document.getElementById('actions');
+            
+            if (gameState.todaysCard) {
+                currentCardDiv.innerHTML = `
+                    <div class="current-card">
+                        <div class="card-title">📝 ${gameState.todaysCard}</div>
+                        <div class="card-description">${cardDescriptions[gameState.todaysCard]}</div>
+                    </div>
+                `;
+                currentCardDiv.style.display = 'block';
+                
+                if (gameState.todaysCard === "Essen wie immer") {
+                    actionsDiv.style.display = 'flex';
+                    document.getElementById('saveBtn').style.display = 'block';
+                } else {
+                    document.getElementById('saveBtn').style.display = 'none';
+                    if (gameState.savedCards.length > 0) {
+                        actionsDiv.style.display = 'flex';
+                    } else {
+                        actionsDiv.style.display = 'none';
+                    }
+                }
+            } else {
+                currentCardDiv.style.display = 'none';
+                if (gameState.savedCards.length > 0) {
+                    actionsDiv.style.display = 'flex';
+                    document.getElementById('saveBtn').style.display = 'none';
+                } else {
+                    actionsDiv.style.display = 'none';
+                }
+            }
+
+            // Saved Cards Button
+            const useSavedBtn = document.getElementById('useSavedBtn');
+            useSavedBtn.disabled = gameState.savedCards.length === 0;
+            useSavedBtn.textContent = `📋 Gespeicherte nutzen (${gameState.savedCards.length})`;
+
+            // Hide saved cards display if no card is being shown
+            if (!gameState.todaysCard) {
+                document.getElementById('savedCards').style.display = 'none';
+            }
+
+            // Game Complete Message
+            const completeDiv = document.getElementById('completeMessage');
+            if (gameState.gameComplete) {
+                completeDiv.innerHTML = `
+                    <div class="complete-message">
+                        🎉 Herzlichen Glückwunsch! 🎉<br>
+                        Du hast alle 4 Blöcke erfolgreich abgeschlossen!<br>
+                        Du bist ein Abnehm-Champion! 💪
+                    </div>
+                `;
+                completeDiv.style.display = 'block';
+            } else {
+                completeDiv.style.display = 'none';
+            }
+        }
+
+        // Initialize game on page load
+        window.addEventListener('load', initGame);
+    </script>
+</body>
+</html>
