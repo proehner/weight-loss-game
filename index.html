@@ -266,27 +266,43 @@
 
         <div id="completeMessage" style="display: none;"></div>
 
-        <button class="action-btn reset-btn" onclick="resetGame()" style="width: 100%; margin-bottom: 20px;">
+        <button class="action-btn reset-btn" onclick="resetGame()" style="width: 100%; margin-bottom: 10px;">
             🔄 Spiel zurücksetzen
         </button>
 
-        <div class="rules">
-            <h3>📋 Spielregeln</h3>
-            <div class="rule-item">
-                <div class="rule-title">🌅 Ziehung der Karte:</div>
-                Die Karte für den Tag wird erst nach dem Aufstehen gezogen, nicht am Vorabend.
-            </div>
-            <div class="rule-item">
-                <div class="rule-title">🍽️ Essen wie immer:</div>
-                Diese Karte kann für einen frei wählbaren Folgetag aufgehoben werden.
-            </div>
-            <div class="rule-item">
-                <div class="rule-title">⏰ Intervallfasten:</div>
-                8 Stunden normale Nahrungsaufnahme, dann 16 Stunden nichts essen. Letzte Mahlzeit bis 16 Uhr.
-            </div>
-            <div class="rule-item">
-                <div class="rule-title">🚫 Fasten:</div>
-                Ganztägig nur Wasser, Tee oder schwarzer Kaffee. Bei zweimaliger Ziehung hintereinander kann die zweite Karte aufgehoben werden.
+        <button class="action-btn rules-btn" onclick="toggleRules()" id="rulesButton" style="width: 100%; margin-bottom: 20px;">
+            📋 Spielregeln anzeigen
+        </button>
+
+        <!-- Modal für Spielregeln -->
+        <div id="rulesModal" class="modal" style="display: none;">
+            <div class="modal-content">
+                <h3 class="modal-header">📋 Spielregeln</h3>
+                <br/>
+                <div class="rule-item">
+                    <div class="rule-title">🌅 Ziehung der Karte:</div>
+                    Die Karte für den Tag wird erst nach dem Aufstehen gezogen, nicht am Vorabend.
+                </div>
+                <div class="rule-item">
+                    <div class="rule-title">🍽️ Essen wie immer:</div>
+                    Diese Karte kann für einen frei wählbaren Folgetag aufgehoben werden. Beim Aufheben wird automatisch eine neue Karte für den aktuellen Tag gezogen.
+                </div>
+                <div class="rule-item">
+                    <div class="rule-title">⏰ Intervallfasten:</div>
+                    8 Stunden normale Nahrungsaufnahme, dann 16 Stunden nichts essen. Letzte Mahlzeit bis 16 Uhr.
+                </div>
+                <div class="rule-item">
+                    <div class="rule-title">🚫 Fasten:</div>
+                    Ganztägig nur Wasser, Tee oder schwarzer Kaffee. Bei zweimaliger Ziehung hintereinander kann die zweite Karte aufgehoben werden.
+                </div>
+                <div class="rule-item">
+                    <div class="rule-title">🎯 Spielablauf:</div>
+                    4 Blöcke à 10 Tage. Jeder Block hat unterschiedliche Kartenzusammenstellungen. Pro Tag wird genau eine Karte gezogen.
+                </div>
+                <div class="rule-item">
+                    <div class="rule-title">💾 Gespeicherte Karten:</div>
+                    Aufgehobene "Essen wie immer"-Karten können jederzeit für einen beliebigen Tag verwendet werden.
+                </div>
             </div>
         </div>
     </div>
@@ -449,7 +465,49 @@
         function saveCard() {
             if (gameState.todaysCard === "Essen wie immer") {
                 gameState.savedCards.push(gameState.todaysCard);
-                gameState.todaysCard = null;
+                
+                // Automatisch neue Karte für denselben Tag ziehen
+                const deck = createCardDeck();
+                if (deck.length > 0) {
+                    const randomIndex = Math.floor(Math.random() * deck.length);
+                    const newCard = deck[randomIndex];
+                    
+                    // Spezialregel für Fasten prüfen
+                    if (newCard === "Fastentag" && gameState.lastCard === "Fastentag") {
+                        const useAlternative = confirm("Du hast gestern schon gefastet. Möchtest du die Fastenkarte für später aufheben und eine andere ziehen?");
+                        if (useAlternative) {
+                            gameState.savedCards.push("Fastentag");
+                            // Entferne Fastentag aus verfügbaren Karten für diese Ziehung
+                            const alternativeDeck = deck.filter(card => card !== "Fastentag");
+                            if (alternativeDeck.length > 0) {
+                                const altIndex = Math.floor(Math.random() * alternativeDeck.length);
+                                gameState.todaysCard = alternativeDeck[altIndex];
+                                gameState.availableCards[gameState.todaysCard]--;
+                            } else {
+                                gameState.todaysCard = newCard;
+                                gameState.availableCards[newCard]--;
+                            }
+                        } else {
+                            gameState.todaysCard = newCard;
+                            gameState.availableCards[newCard]--;
+                        }
+                    } else {
+                        gameState.todaysCard = newCard;
+                        gameState.availableCards[newCard]--;
+                    }
+
+                    if (gameState.availableCards[gameState.todaysCard] === 0) {
+                        delete gameState.availableCards[gameState.todaysCard];
+                    }
+
+                    gameState.lastCard = gameState.todaysCard;
+                } else {
+                    // Wenn keine Karten mehr verfügbar sind, zum nächsten Block
+                    gameState.todaysCard = null;
+                    nextBlock();
+                    return;
+                }
+                
                 saveGame();
                 updateUI();
             }
@@ -531,8 +589,14 @@
             const drawButton = document.getElementById('drawButton');
             const canDraw = canDrawToday() && !gameState.gameComplete;
             drawButton.disabled = !canDraw;
-            drawButton.textContent = gameState.todaysCard ? '✅ Karte bereits gezogen' : 
-                                   gameState.gameComplete ? '🏆 Spiel beendet' : '🎲 Karte für heute ziehen';
+            
+            if (gameState.todaysCard) {
+                drawButton.textContent = '✅ Karte bereits gezogen';
+            } else if (gameState.gameComplete) {
+                drawButton.textContent = '🏆 Spiel beendet';
+            } else {
+                drawButton.textContent = '🎲 Karte für heute ziehen';
+            }
 
             // Current Card
             const currentCardDiv = document.getElementById('currentCard');
@@ -591,6 +655,29 @@
                 completeDiv.style.display = 'block';
             } else {
                 completeDiv.style.display = 'none';
+            }
+        }
+
+        function toggleRules() {
+            const modal = document.getElementById('rulesModal');
+            const button = document.getElementById('rulesButton');
+            
+            if (modal.style.display === 'block') {
+                modal.style.display = 'none';
+                button.textContent = '📋 Spielregeln anzeigen';
+            } else {
+                modal.style.display = 'block';
+                button.textContent = '❌ Spielregeln schließen';
+            }
+        }
+
+        // Modal schließen beim Klick außerhalb des Inhalts
+        window.onclick = function(event) {
+            const modal = document.getElementById('rulesModal');
+            const button = document.getElementById('rulesButton');
+            if (event.target === modal) {
+                modal.style.display = 'none';
+                button.textContent = '📋 Spielregeln anzeigen';
             }
         }
 
