@@ -352,17 +352,31 @@
         };
 
         function initGame() {
-            const saved = JSON.parse(window.gameData || '{}');
-            if (saved.currentBlock !== undefined) {
-                gameState = saved;
-            } else {
+            try {
+                const savedData = localStorage.getItem('spielendAbnehmenGameState');
+                if (savedData) {
+                    const saved = JSON.parse(savedData);
+                    if (saved.currentBlock !== undefined) {
+                        gameState = saved;
+                    } else {
+                        resetToCurrentBlock();
+                    }
+                } else {
+                    resetToCurrentBlock();
+                }
+            } catch (error) {
+                console.error('Fehler beim Laden der Spieldaten:', error);
                 resetToCurrentBlock();
             }
             updateUI();
         }
 
         function saveGame() {
-            window.gameData = JSON.stringify(gameState);
+            try {
+                localStorage.setItem('spielendAbnehmenGameState', JSON.stringify(gameState));
+            } catch (error) {
+                console.error('Fehler beim Speichern der Spieldaten:', error);
+            }
         }
 
         function resetToCurrentBlock() {
